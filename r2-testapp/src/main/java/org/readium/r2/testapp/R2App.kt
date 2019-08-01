@@ -37,6 +37,8 @@ class R2App : Application() {
         // scheduled tasks
         stopKovenant()
     }
+
+
 }
 
 val Context.resolver: ContentResolver

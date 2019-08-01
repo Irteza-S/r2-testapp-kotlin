@@ -44,6 +44,7 @@ var checkScrollMode = function() {
 
 
 window.addEventListener('scroll', function(e) {
+
     last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight;
     last_known_scroll_position = window.scrollX / document.scrollingElement.scrollWidth;
 
@@ -51,6 +52,7 @@ window.addEventListener('scroll', function(e) {
 
     if (!ticking) {
         window.requestAnimationFrame(function() {
+            console.log("DEBUG_INFORMATIONS: SCROLLING")
             if(scrolling) {
                 update(last_known_scrollY_position);
                 console.log("last_known_scrollY_position " + last_known_scrollY_position);
@@ -73,6 +75,9 @@ var scrollToId = function(id) {
 
     document.scrollingElement.scrollLeft = snapOffset(offset);
 };
+
+
+
 
 // Position must be in the range [0 - 1], 0-100%.
 var scrollToPosition = function(position) {

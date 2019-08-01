@@ -11,13 +11,12 @@
 package org.readium.r2.testapp
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.view.Gravity
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.view.accessibility.AccessibilityManager
 import android.widget.TextView
@@ -31,7 +30,25 @@ import org.json.JSONObject
 import org.readium.r2.navigator.R2EpubActivity
 import org.readium.r2.shared.*
 import org.readium.r2.shared.drm.DRM
+import java.io.InputStream
 import kotlin.coroutines.CoroutineContext
+import android.os.AsyncTask
+import android.util.Log
+import org.jsoup.Jsoup
+import android.text.InputType
+import android.view.Menu
+import android.view.MenuItem
+import android.webkit.JavascriptInterface
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.ActionBar
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import org.readium.r2.navigator.BASE_URL
+import org.readium.r2.navigator.currentActivity
+import org.readium.r2.navigator.keywordGlobal
+import org.readium.r2.testapp.Results.ResultItem
+import org.readium.r2.testapp.Results.ResultsActivity
+import org.w3c.dom.Element
 
 
 /**
@@ -42,6 +59,8 @@ import kotlin.coroutines.CoroutineContext
  *
  */
 class R2EpubActivity : R2EpubActivity(), CoroutineScope {
+
+
 
     /**
      * Context of this scope.
@@ -66,13 +85,20 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
     protected var menuDrm: MenuItem? = null
     protected var menuToc: MenuItem? = null
     protected var menuBmk: MenuItem? = null
+    protected var menuSearch: MenuItem? = null
+    protected var menuPrevious: MenuItem? = null
+    protected var menuCancel: MenuItem? = null
+    protected var menuNext: MenuItem? = null
 
     protected var menuScreenReader: MenuItem? = null
 
     private var bookId: Long = -1
 
+    var inputStream  : InputStream? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        currentActivity = this
         bookmarksDB = BookmarksDatabase(this)
         positionsDB = PositionsDatabase(this)
 
@@ -127,6 +153,19 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
             screenReader.start()
             play_pause.setImageResource(android.R.drawable.ic_media_pause)
         }
+
+        // Opens .xml file
+        //inputStream = getResources().openRawResource(+ R.xml.main0);
+        //println("Test : "+inputStream.reader().readText())
+        /* val dbFactory = DocumentBuilderFactory.newInstance()
+         val dBuilder = dbFactory.newDocumentBuilder()
+         var content = inputStream.readBytes().toString(Charset.defaultCharset())
+         println("Class:" + content.javaClass.name)*/
+
+
+
+
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -134,10 +173,14 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
         menuDrm = menu?.findItem(R.id.drm)
         menuToc = menu?.findItem(R.id.toc)
         menuBmk = menu?.findItem(R.id.bookmark)
+        menuSearch = menu?.findItem(R.id.search)
+        menuPrevious = menu?.findItem(R.id.previous)
+        menuCancel = menu?.findItem(R.id.cancel)
+        menuNext = menu?.findItem(R.id.next)
 
-        menuScreenReader = menu?.findItem(R.id.screen_reader)
+        //menuScreenReader = menu?.findItem(R.id.scre)
 
-        menuScreenReader?.isVisible = !isExploreByTouchEnabled
+        //menuScreenReader?.isVisible = !isExploreByTouchEnabled
 
         menuDrm?.isVisible = false
         return true
@@ -163,7 +206,7 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
                 userSettings.userSettingsPopUp().showAsDropDown(this.findViewById(R.id.settings), 0, 0, Gravity.END)
                 return true
             }
-            R.id.screen_reader -> {
+            /*R.id.screen_reader -> {
                 if (!screenReader.isSpeaking && !screenReader.isPaused && item.title == resources.getString(R.string.epubactivity_read_aloud_start)) {
 
                     screenReader.goTo(resourcePager.currentItem)
@@ -182,7 +225,7 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
                 }
 
                 return true
-            }
+            } */
             R.id.drm -> {
                 if (screenReader.isSpeaking) {
                     dismissScreenReader(menuScreenReader!!)
@@ -191,6 +234,7 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
                 return true
             }
             R.id.bookmark -> {
+                /*
                 val resourceIndex = resourcePager.currentItem.toLong()
                 val resource = publication.readingOrder[resourcePager.currentItem]
                 val resourceHref = resource.href?: ""
@@ -211,7 +255,7 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
                         Locations(progression = locations.progression, position = currentPage),
                         LocatorText()
                 )
-                
+
                 bookmarksDB.bookmarks.insert(bookmark)?.let {
                     launch {
                         currentPage?.let {
@@ -225,13 +269,133 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
                         toast("Bookmark already exists")
                     }
                 }
+                */
+
+                var html = ""
+                var resourcesHTML = ArrayList<String>()
+                var resourceNumber = 0
+                while (resourceNumber < 5) {
+                    val port = preferences.getString("$publicationIdentifier-publicationPort", 0.toString()).toInt()
+                    lateinit var document : org.jsoup.nodes.Document
+                    val thread = Thread(Runnable {
+                        document = Jsoup.connect("$BASE_URL:$port/$epubName${publication.readingOrder[resourceNumber].href}").get()
+                        resourcesHTML.add(document.toString())
+                    })
+                    thread.start()
+                    thread.join()
+                    resourceNumber++
+                }
+
+                val intent = Intent(this, WordSearch::class.java)
+                intent.putExtra("currentChapter", html)
+                intent.putExtra("resourcesHtml", resourcesHTML)
+                startActivityForResult(intent, 2)
+
+                return true
+            }
+            R.id.search -> {
+
+                /*
+                val intent = Intent(this, WordSearch::class.java)
+                var html = this.getHTML()
+                val doc = Jsoup.parse(html)
+                //var link = doc.select("p").first()
+                Log.d("TEST : 2", html)
+                intent.putExtra("currentChapter", html)
+                startActivityForResult(intent, 2)
+                return true
+                */
+
+                /*
+                Log.d("TEST : Starting search", "Starting activity")
+                var html = this.getHTML()
+
+                Log.d("TEST : Starting search", html)
+                val doc = Jsoup.parse(html)
+
+                */
+
+                // Open search activity
+                //var url = "$BASE_URL:${screenReader.port}/$epubName${publication.readingOrder[screenReader.resourceIndex].href}"
+
+                /*val port = preferences.getString("$publicationIdentifier-publicationPort", 0.toString()).toInt()
+                val thread = Thread(Runnable {
+                    val document = Jsoup.connect("$BASE_URL:$port/$epubName${publication.readingOrder[3].href}").get()
+                    //Log.d("JSOUP", document.toString())
+                })
+                thread.start()
+                thread.join()
+                */
+
+                /**
+                 * Search Popup
+                 */
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle("Search")
+                var m_Text = ""
+                val input = EditText(this)
+                input.inputType = InputType.TYPE_CLASS_TEXT
+                builder.setView(input)
+                builder.setPositiveButton("Search") {
+                     dialog, which -> m_Text = input.text.toString()
+                    Log.d("Search :", "Search button clicked with : "+m_Text)
+                    this.keyword = m_Text
+
+                    //Iterating through all chapters
+                    var resourceNumber = 0
+                    while (resourceNumber < publication.readingOrder.size) {
+                        val port = preferences.getString("$publicationIdentifier-publicationPort", 0.toString()).toInt()
+                        lateinit var document : org.jsoup.nodes.Document
+                        val thread = Thread(Runnable {
+                            document = Jsoup.connect("$BASE_URL:$port/$epubName${publication.readingOrder[resourceNumber].href}").get()
+                            //Log.d("JSOUP", document.toString())
+                        })
+                        thread.start()
+                        thread.join()
+                        document?.let {
+                            Log.d("JSOUP", document.toString())
+                            this.searchKeyword(m_Text, document.getElementsByTag("body").text(), publication.readingOrder[resourceNumber].href as String)
+                        }
+                        resourceNumber++
+                    }
+                    var resString = getResults()
+                    val intent = Intent(applicationContext, ResultsActivity::class.java)
+                    intent.putExtra("resultItems", resString)
+                    intent.putExtra("publication", publication)
+                    startActivityForResult(intent, 2)
+                }
+                builder.setNegativeButton("Cancel") { dialog, which -> dialog.cancel() }
+                builder.show()
+
 
                 return true
             }
 
+            R.id.previous -> {
+
+                this.previousWord()
+                return true
+            }
+
+            R.id.next -> {
+                this.nextWord()
+                return true
+            }
+
+            R.id.cancel -> {
+                this.cancel()
+                return true
+            }
+
+
             else -> return false
         }
 
+    }
+
+    override fun onBackPressed() {
+        keywordGlobal = ""
+        finish()
     }
 
     fun dismissScreenReader(item: MenuItem) {
@@ -244,6 +408,7 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
         if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
             if (data != null && data.getBooleanExtra("returned", false)) {
                 finish()
@@ -251,6 +416,7 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
+
     }
 
     override fun onResume() {
@@ -324,3 +490,5 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
     }
 
 }
+
+

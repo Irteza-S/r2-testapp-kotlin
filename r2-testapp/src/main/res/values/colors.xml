@@ -12,10 +12,13 @@
 <resources>
     <color name="colorPrimary">#222325</color>
     <color name="colorPrimaryDark">#070707</color>
-    <color name="colorAccent">#eceaeb</color>
     <color name="colorAccentPrefs">#070707</color>
 
 
+
+    <color name="colorAccent">#FF4081</color>
+    <color name="colorHeader">#a5d6a7</color>
+    <color name="colorEvent">#90caf9</color>
     <color name="snackbar_background_color">@color/colorPrimaryDark</color>
     <color name="snackbar_text_color">@color/colorAccent</color>
 

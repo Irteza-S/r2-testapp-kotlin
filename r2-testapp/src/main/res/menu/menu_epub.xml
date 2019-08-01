@@ -15,20 +15,34 @@
     tools:context='org.readium.r2.testapp.R2EpubActivity'>
 
     <item
-        android:id="@+id/drm"
-        android:icon="@drawable/icon_drm"
-        android:title="@string/epubactivity_drm_info"
+        android:id="@+id/previous"
+        android:icon="@drawable/previous"
+        android:title="Previous"
+        app:showAsAction="always|always"
+        tools:ignore="AlwaysShowAction"/>
+
+    <item
+        android:id="@+id/cancel"
+        android:icon="@drawable/cancel"
+        android:title="Cancel"
+        app:showAsAction="always|always"
+        tools:ignore="AlwaysShowAction"/>
+
+    <item
+        android:id="@+id/next"
+        android:icon="@drawable/next"
+        android:title="Next"
+        app:showAsAction="always|always"
+        tools:ignore="AlwaysShowAction"/>
+
+    <item
+        android:id="@+id/search"
+        android:icon="@drawable/icon_search"
+        android:title="Search"
         app:showAsAction="always|always"
         tools:ignore="AlwaysShowAction">
     </item>
 
-    <item
-        android:id="@+id/screen_reader"
-        android:icon="@drawable/icon_audio"
-        android:title="@string/epubactivity_read_aloud_start"
-        app:showAsAction="always|always"
-        tools:ignore="AlwaysShowAction">
-    </item>
 
     <item
         android:id="@+id/bookmark"

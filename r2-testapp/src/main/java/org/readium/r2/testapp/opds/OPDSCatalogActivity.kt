@@ -192,11 +192,11 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
 
-            R.id.filter -> {
+            /*R.id.filter -> {
                 facetPopup = facetPopUp()
                 facetPopup?.showAsDropDown(this.findViewById(R.id.filter), 0, 0, Gravity.END)
                 false
-            }
+            }*/
             else -> super.onOptionsItemSelected(item)
         }
     }

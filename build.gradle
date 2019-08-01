@@ -31,3 +31,8 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+//  /app/build.gradle
+depencency {
+    compile project(':lib')
+}

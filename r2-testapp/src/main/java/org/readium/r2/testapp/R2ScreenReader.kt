@@ -13,6 +13,7 @@ package org.readium.r2.testapp
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.util.TypedValue
 import android.widget.TextView
 import android.widget.Toast
@@ -59,7 +60,7 @@ class R2ScreenReader(var context: Context, var publication: Publication, var por
     val isSpeaking: Boolean
         get() = textToSpeech.isSpeaking
 
-    private var resourceIndex:Int
+    var resourceIndex:Int
 
     init {
 
@@ -130,6 +131,13 @@ class R2ScreenReader(var context: Context, var publication: Publication, var por
         }
     }
 
+
+
+    fun getHTML() : String {
+        var uri = "$BASE_URL:$port/$epubName${items[resourceIndex].href}"
+        val document = Jsoup.connect(uri).get()
+        return document.text()
+    }
 
     fun configure() {
         if (initialized) {
