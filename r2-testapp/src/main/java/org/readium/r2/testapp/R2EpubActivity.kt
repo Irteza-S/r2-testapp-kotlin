@@ -46,6 +46,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import org.readium.r2.navigator.BASE_URL
 import org.readium.r2.navigator.currentActivity
 import org.readium.r2.navigator.keywordGlobal
+import org.readium.r2.navigator.pager.R2EpubPageFragment
+import org.readium.r2.navigator.pager.R2PagerAdapter
 import org.readium.r2.testapp.Results.ResultItem
 import org.readium.r2.testapp.Results.ResultsActivity
 import org.w3c.dom.Element
@@ -486,6 +488,15 @@ class R2EpubActivity : R2EpubActivity(), CoroutineScope {
             }
 
             pageEnded = end
+        }
+    }
+
+    fun searchKeyword(keyword: String, document: String, resourceId: String) {
+        val currentFragent = ((resourcePager.adapter as R2PagerAdapter).mFragments.get((resourcePager.adapter as R2PagerAdapter).getItemId(resourcePager.currentItem))) as? R2EpubPageFragment
+        if(currentFragent != null) {
+            keywordGlobal = keyword
+            currentFragent.webView.searchKeyword(keyword, document, resourceId)
+            //currentFragent.webView.searchKeywordInCurrentResource(keyword)
         }
     }
 
